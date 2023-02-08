@@ -9,6 +9,8 @@ function getTotal($arr) {
     $total = 0.00;
     //TODO do adding here
     //TODO do rounding stuff here
+    //hm485
+    //2/9/22
     foreach ($arr as $value) {
         $total += $value;
     }
