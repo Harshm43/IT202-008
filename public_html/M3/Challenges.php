@@ -100,10 +100,10 @@
     </header>
     <nav>
         <ul>
-            <li><a href="#login">login</a></li>
-            <li><a href="#register">register</a></li>
-            <li><a href="#profile">profile</a></li>
-            <li><a href="#logout">logout</a></li>
+          <li><a href="#login" onclick="handleClick(event)">login</a> </li>
+          <li><a href="#register" onclick="handleClick(event)">register</a></li>
+          <li><a href="#profile" onclick="handleClick(event)">profile</a></li>
+          <li><a href="#logout" onclick="handleClick(event)">logout</a></li>
         </ul>
     </nav>
     <h1></h1>
