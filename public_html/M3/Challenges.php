@@ -71,7 +71,7 @@
   /* Add custom styling */
   body {
     background-color: #f5f5f5;
-    font-family: Arial, sans-serif;
+    font-family: cursive;
     color: #333;
   }
   
