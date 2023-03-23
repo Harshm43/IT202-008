@@ -16,9 +16,38 @@ require(__DIR__ . "/../../partials/nav.php");
     function validate(form) {
         //TODO 1: implement JavaScript validation
         //ensure it returns false for an error and true for success
+        const email = form.email.value.trim();
+    const username = form.username.value.trim();
+    const password = form.password.value.trim();
+    const confirm = form.confirm.value.trim();
 
-        return true;
+    if (!is_valid_email(email)) {
+        alert("Invalid email address");
+        return false;
     }
+
+    if (username.length < 3 || username.length > 16) {
+        alert("Username must be between 3 and 16 characters long");
+        return false;
+    }
+
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+        alert("Username must only contain alphanumeric characters, hyphens, and underscores");
+        return false;
+    }
+
+    if (password.length < 8) {
+        alert("Password must be at least 8 characters long");
+        return false;
+    }
+
+    if (password !== confirm) {
+        alert("Passwords do not match");
+        return false;
+    }
+
+    return true;
+}
 </script>
 <?php
 //TODO 2: add PHP Code
@@ -29,32 +58,28 @@ if (isset($_POST["email"]) && isset($_POST["password"])) {
     //TODO 3
     $hasError = false;
     if (empty($email)) {
-        flash("Email must not be empty");
+        flash("Email must not be empty", "danger");
         $hasError = true;
     }
     //sanitize
-    //$email = (filter_var($email, FILTER_SANITIZE_EMAIL));
     $email = sanitize_email($email);
     //validate
-    /*if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $hasError = true;
-    }*/
-    if(!is_valid_email($email)){
-        flash("Invalid email address");
+    if (!is_valid_email($email)) {
+        flash("Invalid email address", "danger");
         $hasError = true;
     }
     if (empty($password)) {
-        flash("password must not be empty");
+        flash("password must not be empty", "danger");
         $hasError = true;
     }
     if (strlen($password) < 8) {
-        flash("Password too short");
+        flash("Password too short", "danger");
         $hasError = true;
     }
     if (!$hasError) {
         //TODO 4
         $db = getDB();
-        $stmt = $db->prepare("SELECT email, password from Users where email = :email");
+        $stmt = $db->prepare("SELECT id, email, username, password from Users where email = :email");
         try {
             $r = $stmt->execute([":email" => $email]);
             if ($r) {
@@ -67,18 +92,18 @@ if (isset($_POST["email"]) && isset($_POST["password"])) {
                         $_SESSION["user"] = $user;
                         die(header("Location: home.php"));
                     } else {
-                        flash("Invalid password");
+                        flash("Invalid password", "danger");
                     }
                 } else {
-                    flash("Email not found");
+                    flash("Email not found", "danger");
                 }
             }
         } catch (Exception $e) {
             flash("<pre>" . var_export($e, true) . "</pre>");
         }
-    
-
     }
 }
 ?>
-<?php require_once(__DIR__. "/../../partials/flash.php");
+<?php
+require(__DIR__ . "/../../partials/flash.php");
+?>

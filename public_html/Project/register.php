@@ -7,6 +7,10 @@ require(__DIR__ . "/../../partials/nav.php");
         <input type="email" name="email" required />
     </div>
     <div>
+        <label for="username">Username</label>
+        <input type="text" name="username" required maxlength="30" />
+    </div>
+    <div>
         <label for="pw">Password</label>
         <input type="password" id="pw" name="password" required minlength="8" />
     </div>
@@ -20,100 +24,72 @@ require(__DIR__ . "/../../partials/nav.php");
     function validate(form) {
         //TODO 1: implement JavaScript validation
         //ensure it returns false for an error and true for success
-        var email = form.email.value;
-        var password = form.password.value;
-        var confirm = form.confirm.value;
 
-    // Validate email
-    if (!email) {
-        alert("Email must not be empty.");
-        return false;
+        return true;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        alert("Invalid email format.");
-        return false;
-    }
-
-    // Validate password
-    if (!password) {
-        alert("Password must not be empty.");
-        return false;
-    }
-    if (password.length < 8) {
-        alert("Password must be at least 8 characters.");
-        return false;
-    }
-
-    // Confirm password
-    if (!confirm) {
-        alert("Confirm password must not be empty.");
-        return false;
-    }
-    if (password !== confirm) {
-        alert("Password and confirm password must match.");
-        return false;
-    }
-
-    // All validations passed
-    return true;
-}
 </script>
 <?php
- //TODO 2: add PHP Code
- if (isset($_POST["email"]) && isset($_POST["password"]) && isset($_POST["confirm"])){
-    $email = se($_POST, "email","", false); //$_POST["email"];
-    $password = se($_POST, "password","", false);//$_POST["password"];
-    $confirm = se($_POST, "confirm","", false);//$_POST ["confirm"];
-    //TODO 3: validate/use
+//TODO 2: add PHP Code
+if (isset($_POST["email"]) && isset($_POST["password"]) && isset($_POST["confirm"]) && isset($_POST["username"])) {
+    $email = se($_POST, "email", "", false);
+    $password = se($_POST, "password", "", false);
+    $confirm = se(
+        $_POST,
+        "confirm",
+        "",
+        false
+    );
+    $username = se($_POST, "username", "", false);
+    //TODO 3
     $hasError = false;
     if (empty($email)) {
-        flash("Email must not be empty <br>");
+        flash("Email must not be empty", "danger");
         $hasError = true;
     }
     //sanitize
-    //$email = (filter_var($email, FILTER_SANITIZE_EMAIL));
     $email = sanitize_email($email);
     //validate
-    /*if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $hasError = true;
-    }*/
-    if(!is_valid_email($email)){
-        flash("Invalid email address");
+    if (!is_valid_email($email)) {
+        flash("Invalid email address", "danger");
         $hasError = true;
     }
-
+    if (!preg_match('/^[a-z0-9_-]{3,16}$/i', $username)) {
+        flash("Username must only be alphanumeric and can only contain - or _", "danger");
+        $hasError = true;
+    }
     if (empty($password)) {
-        flash("Password must not be empty <br>");
+        flash("password must not be empty", "danger");
         $hasError = true;
     }
     if (empty($confirm)) {
-        flash("Confirm Password must not be empty <br>");
+        flash("Confirm password must not be empty", "danger");
         $hasError = true;
     }
     if (strlen($password) < 8) {
-        flash("Password must be at least 8 characters <br>");
+        flash("Password too short", "danger");
         $hasError = true;
     }
     if (
-        strlen($password) > 0 && $password !== $confirm) {
-        flash("password must match <br>");
+        strlen($password) > 0 && $password !== $confirm
+    ) {
+        flash("Passwords must match", "danger");
         $hasError = true;
     }
     if (!$hasError) {
-        //flash("Welcome, $email");
+        //TODO 4
         $hash = password_hash($password, PASSWORD_BCRYPT);
         $db = getDB();
-        $stmt = $db->prepare("INSERT INTO Users (email, password) VALUES (:email, :password)");
+        $stmt = $db->prepare("INSERT INTO Users (email, password, username) VALUES(:email, :password, :username)");
         try {
-            $stmt->execute([":email" => $email, ":password" => $hash]);
+            $stmt->execute([":email" => $email, ":password" => $hash, ":username" => $username]);
             flash("Successfully registered!");
-        }catch (Exception $e) {
-            flash("There was a problem registering");
-            flash("<pre>" . var_export($e, true) . "</pre>");
-
+        } catch (Exception $e) {
+            flash("There was a problem registering", "danger");
+            flash("<pre>" . var_export($e, true) . "</pre>", "danger");
         }
     }
-
- }
+}
 ?>
-<?php require_once(__DIR__. "/../../partials/flash.php");
+<?php
+require(__DIR__ . "/../../partials/flash.php");
+?>
