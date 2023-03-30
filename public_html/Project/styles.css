@@ -14,11 +14,11 @@
     .alert-info {
         background-color: teal;
     }
-    nav li{display: inline; background-color: rgb(49, 142, 75);}
-    nav li a{color: rgb(17, 58, 242)}
+    nav li{display: inline; background-color: rgb(25, 5, 245);}
+    nav li a{color: rgb(10, 198, 235)}
     input{border-width: 50%;}
     body{
-        background-color: rgba(185, 187, 171, 0.489);
+        background-color: rgba(157, 145, 194, 0.489);
         color: rgb(0, 153, 145);
     
     }
