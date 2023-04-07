@@ -1,5 +1,5 @@
 <?php
-require(__DIR__ . "/partials/nav.php");
+require(__DIR__ . "/../../partials/nav.php");
 ?>
 <form onsubmit="return validate(this)" method="POST">
     <div>
@@ -118,4 +118,4 @@ if (isset($_POST["email"]) && isset($_POST["password"])) {
 }
 ?>
 <?php 
-require(__DIR__."/partials/flash.php");
+require(__DIR__."/../../partials/flash.php");
