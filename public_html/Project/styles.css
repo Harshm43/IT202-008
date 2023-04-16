@@ -1,24 +1,3 @@
-
-    .alert-success {
-        background-color: green
-    }
-
-    .alert-warning {
-        background-color: yellow;
-    }
-
-    .alert-danger {
-        background-color: red;
-    }
-
-    .alert-info {
-        background-color: teal;
-    }
-    nav li{display: inline; background-color: rgb(25, 5, 245);}
-    nav li a{color: rgb(10, 198, 235)}
-    input{border-width: 50%;}
-    body{
-        background-color: rgba(157, 145, 194, 0.489);
-        color: rgb(0, 153, 145);
-    
-    }
+label{
+    text-transform: capitalize;
+}
