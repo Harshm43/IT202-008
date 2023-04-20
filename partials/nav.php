@@ -61,6 +61,7 @@ session_start();
                     <li class="nav-item"><a class="nav-link" href="<?php echo get_url('logout.php'); ?>">Logout</a></li>
                 <?php endif; ?>
             </ul>
+            <span class="navbar-text show-balance"></span>
         </div>
     </div>
 </nav>
