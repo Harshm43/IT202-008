@@ -21,6 +21,7 @@ function get_or_create_account()
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$result) {
                 //account doesn't exist, create it
+                $created = false;
                 try {
                     //my table should automatically create the account number so I just need to assign the user
                     $query = "INSERT INTO RM_Accounts (user_id) VALUES (:uid)";
