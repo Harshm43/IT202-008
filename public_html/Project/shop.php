@@ -17,31 +17,36 @@ try {
 ?>
 <script>
     function purchase(item) {
-        console.log("TODO purchase item", item);
+        console.log("TODO purchase item", product);
         //TODO create JS helper to update all show-balance elements
     }
 </script>
 
 <div class="container-fluid">
     <h1>Shop</h1>
-    <div class="row row-cols-sm-2 row-cols-xs-1 row-cols-md-3 row-cols-lg-6 g-4">
-        <?php foreach ($results as $item) : ?>
+    <div class="row row-cols-1 row-cols-md-5 g-4">
+        <?php foreach ($results as $product) : ?>
             <div class="col">
                 <div class="card bg-light">
                     <div class="card-header">
-                        Placeholder
+                        [Maybe Seller Name]
                     </div>
-                    <?php if (se($item, "image", "", false)) : ?>
-                        <img src="<?php se($item, "image"); ?>" class="card-img-top" alt="...">
+                    <?php if (se($product, "image", "", false)) : ?>
+                        <img src="<?php se($product, "image"); ?>" class="card-img-top" alt="...">
                     <?php endif; ?>
 
                     <div class="card-body">
-                        <h5 class="card-title">Name: <?php se($item, "name"); ?></h5>
-                        <p class="card-text">Description: <?php se($item, "description"); ?></p>
+                        <h5 class="card-title">Name: <?php se($product, "name"); ?></h5>
+                        <p class="card-text">Description: <?php se($product, "description"); ?></p>
                     </div>
                     <div class="card-footer">
-                        Cost: <?php se($item, "cost"); ?>
-                        <button onclick="purchase('<?php se($item, 'id'); ?>')" class="btn btn-primary">Purchase</button>
+                        Price: <?php se($product, "cost"); ?> | <?php se($product, "stock");?> in stock
+                        <form method="POST" action="cart.php">
+                            <input type="hidden" name="product_id" value="<?php se($product, "id");?>"/>
+                            <input type="hidden" name="action" value="add"/>
+                            <input type="number" name="desired_quantity" value="1" min="1" max="<?php se($product, "stock");?>"/>
+                            <input type="submit" class="btn btn-primary" value="Add to Cart"/>
+                        </form>
                     </div>
                 </div>
             </div>

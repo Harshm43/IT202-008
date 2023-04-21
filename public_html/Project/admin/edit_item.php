@@ -1,27 +1,27 @@
 <?php
 //note we need to go up 1 more directory
 require(__DIR__ . "/../../../partials/nav.php");
-
+$TABLE_NAME = "Products";
 if (!has_role("Admin")) {
     flash("You don't have permission to view this page", "warning");
     die(header("Location: $BASE_PATH/home.php"));
 }
 //update the item
 if (isset($_POST["submit"])) {
-    if (update_data("Products", $_GET["id"], $_POST)) {
+    if (update_data($TABLE_NAME, $_GET["id"], $_POST)) {
         flash("Updated item", "success");
     }
 }
 
 //get the table definition
 $result = [];
-$columns = get_columns("Products");
+$columns = get_columns($TABLE_NAME);
 //echo "<pre>" . var_export($columns, true) . "</pre>";
 $ignore = ["id", "modified", "created"];
 $db = getDB();
 //get the item
 $id = se($_GET, "id", -1, false);
-$stmt = $db->prepare("SELECT * FROM Products where id =:id");
+$stmt = $db->prepare("SELECT * FROM $TABLE_NAME where id =:id");
 try {
     $stmt->execute([":id" => $id]);
     $r = $stmt->fetch(PDO::FETCH_ASSOC);
