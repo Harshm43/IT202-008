@@ -5,66 +5,12 @@ if (!is_logged_in(false)) {
     flash("Please log in to or register account to access cart features", "warning");
     die(header("Location: $BASE_PATH" . "/login.php"));
 }
-?>
-<h1>Cart</h1>
-<?php
-$user_id = get_user_id();
-//Deletes all items
-if (isset($_POST["remove-all"]) && $_POST["remove-all"] == "true") {
-    $db = getDB();
-    $stmt = $db->prepare("DELETE FROM Cart WHERE user_id=:user_id");
-    try {
-        $stmt->execute([":user_id" => $user_id]);
-        flash("Successfully deleted all cart items", "success");
-    } catch (PDOException $e) {
-        flash("An unknown error occurred when trying to delete all your cart items", "warning");
-        error_log(var_export($e->errorInfo, true));
-    }
-}
-//Deletes item
-if (isset($_POST["remove-id"])) {
-    $id = $_POST["remove-id"];
-    $db = getDB();
-    $stmt = $db->prepare("DELETE FROM Cart WHERE user_id=:user_id AND product_id=:prod_id");
-    try {
-        $stmt->execute([":user_id" => $user_id, ":prod_id" => $id]);
-        flash("Successfully removed item from your cart", "success");
-    } catch (PDOException $e) {
-        flash("An unknown error ocrrured when trying to update your cart", "warning");
-        error_log(var_export($e->errorInfo, true));
-    }
-}
-//Updates quantity
-if (isset($_POST["quantity"]) && isset($_POST["id"])) {
-    $quantity = $_POST["quantity"];
-    $id = $_POST["id"];
-    $db = getDB();
-    //Server side validation
-    if ($quantity < 0) {
-        flash("This is an invalid quantity", "warning");
-    } else if ($quantity == 0) {
-        $stmt = $db->prepare("DELETE FROM Cart WHERE user_id=:user_id AND product_id=:prod_id");
-        try {
-            $stmt->execute([":user_id" => $user_id, ":prod_id" => $id]);
-            flash("Successfully removed item from your cart", "success");
-        } catch (PDOException $e) {
-            flash("An unknown error ocrrured when trying to update your cart", "warning");
-            error_log(var_export($e->errorInfo, true));
-        }
-    } else {
-        $stmt = $db->prepare("UPDATE Cart SET desired_quantity=:quantity WHERE user_id=:user_id AND product_id=:prod_id");
-        try {
-            $stmt->execute([":quantity" => $quantity, ":user_id" => $user_id, ":prod_id" => $id]);
-            flash("Successfully updated your cart", "success");
-        } catch (PDOException $e) {
-            flash("An unknown error occurred when trying to update your cart", "warning");
-            error_log(var_export($e->errorInfo, true));
-        }
-    }
-}
-//if name is set, adds item to cart
-if (isset($_POST["name"])) {
-    $name = $_POST["name"];
+//if no query parameter redirect to home page
+if (!isset($_GET["name"])) {
+    die(header("Location: $BASE_PATH" . "/home.php"));
+} //Adds to cart
+else {
+    $name = $_GET["name"];
     $db = getDB();
     //get product details using name
     $stmt1 = $db->prepare("SELECT id, unit_price FROM Products WHERE name=:name");
@@ -73,50 +19,21 @@ if (isset($_POST["name"])) {
         $product_info = $stmt1->fetch(PDO::FETCH_ASSOC);
         $product_id = $product_info["id"];
         $unit_price = $product_info["unit_price"];
+        $user_id = get_user_id();
         //insert product into cart
         $stmt2 = $db->prepare("INSERT INTO Cart (product_id, user_id, unit_price) VALUES (:prod_id, :user_id, :price)");
         try {
-            $stmt2->execute([":prod_id" => $product_id, "user_id" => $user_id, ":price" => $unit_price]);
-            flash("Successfully added $name to cart", "success");
+            $stmt2->execute([":prod_id"=>$product_id, "user_id"=>$user_id, ":price"=>$unit_price]);
+            flash("Successfully added $name to cart");
         } catch (PDOException $e) {
-            if ($e->errorInfo[1] === 1062) {
-                flash("This product is already in your cart.", "info");
-            } else {
-                flash("An unknown error occurred, please try again", "warning");
-                error_log(var_export($e->errorInfo, true));
-            }
+            flash("An unknown error occurred, please try again later", "warning");
+            error_log(var_export($e->errorInfo, true));
         }
     } catch (PDOException $e) {
         flash("An unknown error occurred, please try again later", "warning");
         error_log(var_export($e->errorInfo, true));
     }
 }
-?>
-<?php
-//Gets cart items
-$db = getDB();
-$user_id = get_user_id();
-$results = [];
-//get name, unit_price, desired_quantity for card
-$stmt = $db->prepare("SELECT Products.id, Products.name, Products.unit_price, Cart.desired_quantity FROM Cart LEFT JOIN Products ON Cart.product_id = Products.id WHERE Cart.user_id = :user_id");
-try {
-    $stmt->execute([":user_id" => $user_id]);
-    $results = $stmt->fetchALL(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    flash("An unknown error occurred with displaying your cart, please try again later", "warning");
-    error_log(var_export($e->errorInfo, true));
-}
-$total = 0;
-?>
-<script>
-    function validate(form) {
-        let isValid = true;
-        if (form.quantity.value < 0) {
-            flash("This is an invalid quantity", "warning");
-            isValid = false;
-        }
-        return isValid;
-    }
 </script>
 <table class="table table-striped">
     <thead>
@@ -163,5 +80,5 @@ $total = 0;
     <input id="cart-remove-all" class="btn btn-danger" type="Submit" value="Delete All Cart Items">
 </form>
 <?php
-require(__DIR__ . "/../../partials/flash.php");
+require(__DIR__ . "/../../partials/footer.php");
 ?>
