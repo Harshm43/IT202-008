@@ -1,12 +1,12 @@
-CREATE TABLE IF NOT EXISTS Products(
-    id int AUTO_INCREMENT PRIMARY  KEY,
-    name varchar(30) UNIQUE, -- alternatively you'd have a SKU that's unique
-    description text,
-    stock int DEFAULT  0,
-    cost int DEFAULT  99999, -- my cost is int because I don't have regular currency; shop people may want to record it as pennies
-    image text, -- this col type can't have a default value; this isn't required for any project, I chose to add it for mine
-    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-    check (stock >= 0), -- don't allow negative stock; I don't allow backorders
-    check (cost >= 0) -- don't allow negative costs
+CREATE TABLE IF NOT EXISTS `Products` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(50) NOT NULL,
+    `description` VARCHAR(200) DEFAULT 'No description',
+    `category` VARCHAR(25) NOT NULL DEFAULT 'Other',
+    `stock` SMALLINT(5) UNSIGNED NOT NULL,
+    `created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `unit_price` FLOAT(6, 2) UNSIGNED NOT NULL,
+    `visibility` TINYINT(1) DEFAULT 1 NOT NULL,
+    PRIMARY KEY (`id`)
 )

@@ -1,171 +1,167 @@
 <?php
 require(__DIR__ . "/../../partials/nav.php");
-
-is_logged_in(true);
-
-$action = strtolower(trim(se($_POST, "action","", false)));
-if (!empty($action)) {
-    $db = getDB();
-    switch ($action) {
-        case "add":
-            $query = "INSERT INTO Cart_Alt (product_id, desired_quantity, unit_price, user_id)
-            VALUES (:iid, :dq, (SELECT cost FROM Products where id = :iid), :uid) ON DUPLICATE KEY UPDATE
-            desired_quantity = desired_quantity + :dq";
-            $stmt = $db->prepare($query);
-            $stmt->bindValue(":iid", se($_POST, "product_id", 0, false), PDO::PARAM_INT);
-            $stmt->bindValue(":dq", se($_POST, "desired_quantity", 0, false), PDO::PARAM_INT);
-            $stmt->bindValue(":uid", get_user_id(), PDO::PARAM_INT);
-            try {
-                $stmt->execute();
-                flash("Added product to cart", "success");
-            } catch (PDOException $e) {
-                error_log(var_export($e, true));
-                flash("Error adding product to cart", "danger");
-            }
-            break;
-        case "update":
-            $query = "UPDATE Cart_Alt set desired_quantity = :dq WHERE id = :cid AND user_id = :uid";
-            $stmt = $db->prepare($query);
-            $stmt->bindValue(":dq", se($_POST, "desired_quantity", 0, false), PDO::PARAM_INT);
-            //cart id specifies a specific cart item
-            $stmt->bindValue(":cid", se($_POST, "cart_id", 0, false), PDO::PARAM_INT);
-            //user id ensures we can only edit our cart
-            $stmt->bindValue(":uid", get_user_id(), PDO::PARAM_INT);
-            try {
-                $stmt->execute();
-                flash("Updated product quantity", "success");
-            } catch (PDOException $e) {
-                //TODO handle item removal when desired_quantity is <= 0
-                if(se($_POST, "desired_quantity", 0, false)< 0){
-                    error_log(var_export($e, true));
-                    flash("Error cannot set product quantity to below zero","danger");
-                }
-                //TODO handle any other update related rules per your proposal
-                if(se($_POST, "desired_quantity", 0, false)== 0){
-                    
-                    $query = "DELETE FROM Cart_Alt WHERE id = :cid AND user_id = :uid";
-                    $stmt = $db->prepare($query);
-                    $stmt->bindValue(":cid", se($_POST, "cart_id", 0, false), PDO::PARAM_INT);
-                    $stmt->bindValue(":uid", get_user_id(), PDO::PARAM_INT);
-                    try{
-                    $stmt->execute();
-                    flash("Product deleted", "success");
-                    }
-                    catch(PDOException $e){
-                        error_log(var_export($e, true));
-                        flash("Error deleting product", "danger");
-                    }
-                }
-                else{
-                    error_log(var_export($e, true));
-                    flash("Error updating product quantity", "danger");
-                    }
-            }
-            break;
-        case "delete":
-             //TODO you do this part
-            $query = "DELETE FROM Cart_Alt WHERE id = :cid AND user_id = :uid";
-            $stmt = $db->prepare($query);
-            $stmt->bindValue(":cid", se($_POST, "cart_id", 0, false), PDO::PARAM_INT);
-            $stmt->bindValue(":uid", get_user_id(), PDO::PARAM_INT);
-            try{
-                $stmt->execute();
-                flash("Product deleted", "success");
-            }
-            catch(PDOException $e){
-                error_log(var_export($e, true));
-                flash("Error deleting product", "danger");
-            }
-            //flash("Developer: You implement this logic", "warning");
-            break;
-        case "clear":
-            //clear cart contents
-            $query = "DELETE FROM Cart_Alt";
-            $stmt = $db->prepare($query);
-            try{
-                $stmt->execute();
-                flash("Cart cleared", "success");
-            }
-            catch(PDOException $e){
-                error_log(var_export($e, true));
-                flash("Error clearing cart", "danger");
-            }
-            break;
-    }
-}
-$query = "SELECT cart.id, product.stock, product.name, cart.unit_price, (cart.unit_price * cart.desired_quantity) as subtotal, cart.desired_quantity
-FROM Products as product JOIN Cart_Alt as cart on product.id = cart.product_id
- WHERE cart.user_id = :uid";
-$db = getDB();
-$stmt = $db->prepare($query);
-$cart = [];
-try {
-    $stmt->execute([":uid" => get_user_id()]);
-    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    if ($results) {
-        $cart = $results;
-    }
-} catch (PDOException $e) {
-    error_log(var_export($e, true));
-    flash("Error fetching cart", "danger");
+//If user isn't logged in, they cannot access cart features
+if (!is_logged_in(false)) {
+    flash("Please log in to or register account to access cart features", "warning");
+    die(header("Location: $BASE_PATH" . "/login.php"));
 }
 ?>
-<script src="<?php echo get_url('helpers.js'); ?>"></script>
-<div class="container-fluid">
-    <h1>Cart</h1>
-    <table class="table table-striped">
-        <?php $total = 0; ?>
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Subtotal</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($cart as $c) : ?>
-            <tr>
-                <td><?php se($c, "name"); ?></td>
-                <td><?php se($c, "unit_price"); ?></td>
-                <td>
-                    <form method="POST">
-                        <input type="hidden" name="cart_id" value="<?php se($c, "id"); ?>" />
-                        <input type="hidden" name="action" value="update" />
-                        <input type="number" name="desired_quantity" value="<?php se($c, "desired_quantity"); ?>" min="0" max="<?php se($c, "stock"); ?>" />
-                        <input type="submit" class="btn btn-primary" value="Update Quantity" />
-                    </form>
-                </td>
-                <?php $total += (int)se($c, "subtotal", 0, false); ?>
-                <td><?php se($c, "subtotal"); ?></td>
-                <td>
-                    <form method="POST">
-                        <input type="hidden" name="cart_id" value="<?php se($c, "id"); ?>" />
-                        <input type="hidden" name="action" value="delete" />
-                        <input type="submit" class="btn btn-danger" value="X" />
-                    </form>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-        <?php if (count($cart) == 0) : ?>
-            <tr>
-                <td colspan="100%">No products in cart</td>
-            </tr>
-        <?php endif; ?>
-        <tr>
-            <td colspan="100%">Total: <?php se($total, null, 0); ?></td>
-            <td>
-                <form method="POST">
-                    <input type="hidden" name="cart_id" value="<?php se($c, "id"); ?>" />
-                    <input type="hidden" name="action" value="clear" />
-                    <input type="submit" class="btn btn-danger" value="Clear Cart X" />
-                </form>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+<h1>Cart</h1>
 <?php
-require(__DIR__ . "/../../partials/footer.php");
+$user_id = get_user_id();
+//Deletes all items
+if (isset($_POST["remove-all"]) && $_POST["remove-all"] == "true") {
+    $db = getDB();
+    $stmt = $db->prepare("DELETE FROM Cart WHERE user_id=:user_id");
+    try {
+        $stmt->execute([":user_id" => $user_id]);
+        flash("Successfully deleted all cart items", "success");
+    } catch (PDOException $e) {
+        flash("An unknown error occurred when trying to delete all your cart items", "warning");
+        error_log(var_export($e->errorInfo, true));
+    }
+}
+//Deletes item
+if (isset($_POST["remove-id"])) {
+    $id = $_POST["remove-id"];
+    $db = getDB();
+    $stmt = $db->prepare("DELETE FROM Cart WHERE user_id=:user_id AND product_id=:prod_id");
+    try {
+        $stmt->execute([":user_id" => $user_id, ":prod_id" => $id]);
+        flash("Successfully removed item from your cart", "success");
+    } catch (PDOException $e) {
+        flash("An unknown error ocrrured when trying to update your cart", "warning");
+        error_log(var_export($e->errorInfo, true));
+    }
+}
+//Updates quantity
+if (isset($_POST["quantity"]) && isset($_POST["id"])) {
+    $quantity = $_POST["quantity"];
+    $id = $_POST["id"];
+    $db = getDB();
+    //Server side validation
+    if ($quantity < 0) {
+        flash("This is an invalid quantity", "warning");
+    } else if ($quantity == 0) {
+        $stmt = $db->prepare("DELETE FROM Cart WHERE user_id=:user_id AND product_id=:prod_id");
+        try {
+            $stmt->execute([":user_id" => $user_id, ":prod_id" => $id]);
+            flash("Successfully removed item from your cart", "success");
+        } catch (PDOException $e) {
+            flash("An unknown error ocrrured when trying to update your cart", "warning");
+            error_log(var_export($e->errorInfo, true));
+        }
+    } else {
+        $stmt = $db->prepare("UPDATE Cart SET desired_quantity=:quantity WHERE user_id=:user_id AND product_id=:prod_id");
+        try {
+            $stmt->execute([":quantity" => $quantity, ":user_id" => $user_id, ":prod_id" => $id]);
+            flash("Successfully updated your cart", "success");
+        } catch (PDOException $e) {
+            flash("An unknown error occurred when trying to update your cart", "warning");
+            error_log(var_export($e->errorInfo, true));
+        }
+    }
+}
+//if name is set, adds item to cart
+if (isset($_POST["name"])) {
+    $name = $_POST["name"];
+    $db = getDB();
+    //get product details using name
+    $stmt1 = $db->prepare("SELECT id, unit_price FROM Products WHERE name=:name");
+    try {
+        $stmt1->execute([":name" => $name]);
+        $product_info = $stmt1->fetch(PDO::FETCH_ASSOC);
+        $product_id = $product_info["id"];
+        $unit_price = $product_info["unit_price"];
+        //insert product into cart
+        $stmt2 = $db->prepare("INSERT INTO Cart (product_id, user_id, unit_price) VALUES (:prod_id, :user_id, :price)");
+        try {
+            $stmt2->execute([":prod_id" => $product_id, "user_id" => $user_id, ":price" => $unit_price]);
+            flash("Successfully added $name to cart", "success");
+        } catch (PDOException $e) {
+            if ($e->errorInfo[1] === 1062) {
+                flash("This product is already in your cart.", "info");
+            } else {
+                flash("An unknown error occurred, please try again", "warning");
+                error_log(var_export($e->errorInfo, true));
+            }
+        }
+    } catch (PDOException $e) {
+        flash("An unknown error occurred, please try again later", "warning");
+        error_log(var_export($e->errorInfo, true));
+    }
+}
+?>
+<?php
+//Gets cart items
+$db = getDB();
+$user_id = get_user_id();
+$results = [];
+//get name, unit_price, desired_quantity for card
+$stmt = $db->prepare("SELECT Products.id, Products.name, Products.unit_price, Cart.desired_quantity FROM Cart LEFT JOIN Products ON Cart.product_id = Products.id WHERE Cart.user_id = :user_id");
+try {
+    $stmt->execute([":user_id" => $user_id]);
+    $results = $stmt->fetchALL(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    flash("An unknown error occurred with displaying your cart, please try again later", "warning");
+    error_log(var_export($e->errorInfo, true));
+}
+$total = 0;
+?>
+<script>
+    function validate(form) {
+        let isValid = true;
+        if (form.quantity.value < 0) {
+            flash("This is an invalid quantity", "warning");
+            isValid = false;
+        }
+        return isValid;
+    }
+</script>
+<table class="table table-striped">
+    <thead>
+    </thead>
+    <tbody>
+        <?php if (empty($results)) : ?>
+            <tr>
+                <td colspan="100%">Cart is empty</td>
+            </tr>
+        <?php else : ?>
+            <?php foreach ($results as $result) : ?>
+                <?php $subtotal = se($result, "unit_price", "", false) * se($result, "desired_quantity", "", false); ?>
+                <?php $total += $subtotal ?>
+                <tr>
+                    <th><a class="text-decoration-none text-dark" href="more_details.php?name=<?php se($result, "name"); ?>"><?php se($result, "name"); ?></a></th>
+                    <?php if (has_role("Admin") || has_role("Shop Owner")) : ?>
+                        <td><a href="edit_item.php?name=<?php se($result, "name"); ?>">
+                                <div class="btn btn-secondary">Edit</div>
+                            </a></td>
+                    <?php endif; ?>
+                    <th>$<?php se($result, "unit_price"); ?></th>
+                        <th>
+                            <form method="post" onsubmit="return validate(this)">
+                                <input class="" name="quantity" type="number" min="0" value="<?php se($result, "desired_quantity"); ?>">
+                                <input type="hidden" name="id" value="<?php se($result, "id"); ?>">
+                                <input class="btn btn-primary" type="Submit" value="Update">
+                            </form>
+                        </th>
+                    <th>
+                        <form method="post">
+                            <input type="hidden" name="remove-id" value="<?php se($result, "id"); ?>">
+                            <input class="btn btn-danger" type="Submit" value="Remove">
+                        </form>
+                    </th>
+                    <th>Subtotal: $<?php echo (se($subtotal)); ?></th>
+                </tr>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </tbody>
+</table>
+<div id="total-label">Total: $<?php se($total); ?></div>
+<form method="post">
+    <input type="hidden" name="remove-all" value="true">
+    <input id="cart-remove-all" class="btn btn-danger" type="Submit" value="Delete All Cart Items">
+</form>
+<?php
+require(__DIR__ . "/../../partials/flash.php");
 ?>
