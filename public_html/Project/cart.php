@@ -163,5 +163,5 @@ $total = 0;
     <input id="cart-remove-all" class="btn btn-danger" type="Submit" value="Delete All Cart Items">
 </form>
 <?php
-require(__DIR__ . "/../../partials/flash.php");
+require(__DIR__ . "/../../partials/footer.php");
 ?>
