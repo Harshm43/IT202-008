@@ -1,11 +1,10 @@
 <?php
 require(__DIR__ . "/../../partials/nav.php");
 ?>
-<h1 class="left-margin">More Details</h1>
+<h1>More Details</h1>
 <?php
 //if no query parameter redirect to home page
 if (!isset($_GET["name"])) {
-    flash("You must be viewing a product to see this page");
     die(header("Location: $BASE_PATH" . "/home.php"));
 } //Otherwise get more details
 else {
@@ -22,22 +21,15 @@ else {
 }
 ?>
 <ul>
-    <div class="display-3"><?php se($name) ?></div>
-    <div class="display-6">$<?php se($results, "unit_price") ?></div>
-    <p><?php se($results, "description") ?><br><span class="bold-text">Stock:</span> <?php se($results, "stock") ?><br><span class="bold-text">Category:</span> <?php se($results, "category") ?></p>
-    <?php if (has_role("Admin") || has_role("Shop Owner")) : ?>
-        <a href="edit_item.php?name=<?php se($name); ?>">
-            <div class="btn btn-secondary">Edit</div>
-        </a>
-    <?php endif; ?>
-    <br><br>
+    <li><?php se($name) ?></li>
+    <li><?php se($results, "description") ?></li>
+    <li>$<?php se($results, "unit_price") ?></li>
+    <li>Stock: <?php se($results, "stock") ?></li>
+    <li>Category: <?php se($results, "category") ?></li>
     <?php if (is_logged_in()) : ?>
-        <form method="post" action="cart.php">
-            <input type="hidden" name="name" value="<?php se($name); ?>" />
-            <input type="submit" class="btn btn-primary" value="Add to Cart" />
-        </form>
+        <li><a href="cart.php?name=<?php se($name); ?>">Add To Cart</a></li>
     <?php endif; ?>
 </ul>
 <?php
-require_once(__DIR__ . "/../../partials/flash.php");
+require_once(__DIR__ . "/../../partials/footer.php");
 ?>
