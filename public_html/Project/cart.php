@@ -6,7 +6,7 @@ if (!is_logged_in(false)) {
     die(header("Location: $BASE_PATH" . "/login.php"));
 }
 ?>
-<h1>Cart</h1>
+<h1 class="left-margin">Cart</h1>
 <?php
 $user_id = get_user_id();
 //Deletes all items
@@ -163,5 +163,5 @@ $total = 0;
     <input id="cart-remove-all" class="btn btn-danger" type="Submit" value="Delete All Cart Items">
 </form>
 <?php
-require(__DIR__ . "/../../partials/flash.php");
+require(__DIR__ . "/../../partials/footer.php");
 ?>
