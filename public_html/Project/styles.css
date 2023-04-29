@@ -1,3 +1,24 @@
 label{
     text-transform: capitalize;
 }
+#total-label {
+    margin-left: 10px;
+    margin-bottom: 10px;
+    font-size: large;
+    font-weight: bold;
+}
+#cart-remove-all {
+    margin-left: 10px;
+}
+.bold-text {
+    font-weight: bold;
+}
+.left-margin {
+    margin-left: 10px;
+}
+.cart-footer {
+    display:inline;
+}
+.back-button {
+    margin: 5px 5px 5px 5px;
+}

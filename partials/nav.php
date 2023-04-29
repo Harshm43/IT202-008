@@ -40,6 +40,8 @@ session_start();
                 <?php if (is_logged_in()) : ?>
 
                     <li class="nav-item"><a class="nav-link" href="<?php echo get_url('profile.php'); ?>">Profile</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?php echo get_url('purchase_history.php'); ?>">Purchase History</a></li>
+
                 <?php endif; ?>
                 <?php if (!is_logged_in()) : ?>
                     <li class="nav-item"><a class="nav-link" href="<?php echo get_url('login.php'); ?>">Login</a></li>
@@ -65,6 +67,8 @@ session_start();
                         <ul class="dropdown-menu bg-info" aria-labelledby="productsDropdown">
                             <li><a class=dropdown-item href="<?php echo get_url('add_item.php'); ?>">Add Product</a></li>
                             <li><a class=dropdown-item href="<?php echo get_url('list_items.php'); ?>">See Products</a></li>
+                            <li><a class=dropdown-item href="<?php echo get_url('see_purchase_history.php'); ?>">See Purchase History</a></li>
+
                         </ul>
                     <?php endif; ?>
                     <?php if (is_logged_in()) : ?>
