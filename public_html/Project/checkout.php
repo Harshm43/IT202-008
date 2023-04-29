@@ -13,7 +13,7 @@ $order_id = "";
 $db = getDB();
 $user_id = get_user_id();
 $results = [];
-//sd96 - 8/1/22
+//hm485 - 4/29/23
 //Products.unit_price is true product cost
 //Cart.unit_price is the old product cost
 //Gets stock and desired quantity to ensure enough product is avaiable for order
@@ -51,7 +51,7 @@ $total = 0;
                             </a></td>
                     <?php endif; ?>
                     <?php
-                    /*sd96 - 8/1/22
+                    /*hm485- 4/29/23
                     Displays product_price from Products table which is the true price
                     If the product_price is different from cart_price (from Cart table),
                     the percent difference is calculated and the change in the price is shown in 
@@ -71,7 +71,7 @@ $total = 0;
                     </th>
                     <th>
                         <?php
-                        /* sd96 - 8/1/22
+                        /* hm485 - 4/29/23
                         on each iteration, if not enough in stock for desired quantity, redirect user to cart, 
                         flashing information on what to update and how much quantity is available
                         */
@@ -98,7 +98,7 @@ $total = 0;
 <div id="total-label">Total: $<?php echo se($total, null, "", false) / 100; ?></div>
 <script>
     function validate(form) {
-        //sd96 - 8/1/22 (Client Side Validation Part 1)
+        //hm485 - 4/29/23 (Client Side Validation Part 1)
         let method = form["payment-method"].value;
         let money = form["money-received"].value;
         let first_name = form["first-name"].value;
@@ -140,7 +140,7 @@ $total = 0;
             flash("City must not be empty", "warning");
             isValid = false;
         }
-        //sd96 - 8/1/22 (Client Side Validation Part 2)
+        //hm485 - 4/29/23 (Client Side Validation Part 2)
         if (state.length === 0) {
             flash("State/province must not be empty", "warning");
             isValid = false;
@@ -160,7 +160,7 @@ $total = 0;
     <form class="offset-lg-3" method="POST" onsubmit="return validate(this)">
         <h3>Payment Information</h3>
         <div class="form-group row">
-            <?php //sd96 - 8/1/22 (Browser Side Validation pt. 1)
+            <?php //hm485 - 4/29/23 (Browser Side Validation pt. 1)
             ?>
             <div class="mb-3 col-lg-3">
                 <label class="form-label" for="payment-method">Payment Method</label>
@@ -171,7 +171,7 @@ $total = 0;
                 <input class="form-control" id="money-received" name="money-received" required type="number" min="<?php echo se($total, null, "", false) / 100; ?>" step="0.01" />
             </div>
         </div>
-        <?php //sd96 - 8/1/22 (Browser Side Validation pt. 2)
+        <?php //hm485 - 4/29/23 (Browser Side Validation pt. 2)
         ?>
         <h3>Shipping Information</h3>
         <div class="form-group row">
@@ -212,7 +212,7 @@ $total = 0;
     </form>
 </div>
 <?php
-//sd96 - 8/1/22 (Server Side Validation pt. 1)
+//hm485 - 4/29/23 (Server Side Validation pt. 1)
 //if form submitted
 if (isset($_POST["payment-method"]) && isset($_POST["money-received"]) && isset($_POST["first-name"]) && isset($_POST["last-name"]) && isset($_POST["address"]) && isset($_POST["more-address-info"]) && isset($_POST["city"]) && isset($_POST["state"]) && isset($_POST["country"]) && isset($_POST["zip-code"])) {
     //caching info to variables
@@ -243,7 +243,7 @@ if (isset($_POST["payment-method"]) && isset($_POST["money-received"]) && isset(
         flash("Not enough money received to complete order", "warning");
         $isValid = false;
     }
-    //sd96 - 8/1/22 (Server Side Validation pt. 2)
+    //hm485 - 4/29/23 (Server Side Validation pt. 2)
     if (empty($first_name)) {
         flash("First name must not be empty", "warning");
         $isValid = false;
