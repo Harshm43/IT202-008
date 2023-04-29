@@ -94,7 +94,7 @@ $email = get_user_email();
 $username = get_username();
 ?>
 <div class="container-fluid">
-    <h1>Profile</h1>
+    <center><h1>Profile</h1></center>
     <form method="POST" onsubmit="return validate(this);">
         <div class="mb-3">
             <label class="form-label" for="email">Email</label>

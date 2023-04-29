@@ -1,31 +1,36 @@
 <?php
 require(__DIR__ . "/../../partials/nav.php");
-?>
-<center><h1>Shop</h1></center>
-<?php
-if (is_logged_in(false)) {
-    //comment this out if you don't want to see the session variables
-    error_log("Session data: " . var_export($_SESSION, true));
+if (!has_role("Admin") && !has_role("Shop Owner")) {
+    flash("You don't have permission to view this page", "warning");
+    die(header("Location: $BASE_PATH" . "/home.php"));
 }
+?>
+<h1 class="left-margin">All Products</h1>
+<?php
 //default variables needed for conditional html below
 $category = 'all';
 $search = '';
 $sort = 'none';
 $results = [];
 $db = getDB();
-$query = "SELECT name, unit_price FROM Products WHERE visibility=1";
+$query = "SELECT name, unit_price, visibility FROM Products";
 $params = [];
+//sd96 - 7/17/22
 if (isset($_POST["search"])) {
     $search = $_POST["search"];
     if ($search != '') {
-        $query .= " AND name LIKE :search";
+        $query .= " WHERE name LIKE :search";
         $params[":search"] = "%$search%";
     }
 }
 if (isset($_POST["category"])) {
     $category = $_POST["category"];
     if ($category != "all") {
-        $query .= " AND category=:category";
+        if (!strpos($query, "WHERE")) {
+            $query .= " WHERE category=:category";
+        } else {
+            $query .= " AND category=:category";
+        }
         $params[":category"] = $category;
     }
 }
@@ -64,8 +69,7 @@ try {
         <select class="form-select" aria-label="Category" name="category" id="category">
             <option value="all" <?php if (se($category, null, "", false) == "all") : ?>selected<?php endif; ?>>All</option>
             <option value="sports" <?php if (se($category, null, "", false) == "sports") : ?>selected<?php endif; ?>>Sports</option>
-            <option value="school" <?php if (se($category, null, "", false) == "school") : ?>selected<?php endif; ?>>School</option>
-            <option value="elctronic" <?php if (se($category, null, "", false) == "electronic") : ?>selected<?php endif; ?>>Electronic</option>
+            <option value="electronics" <?php if (se($category, null, "", false) == "electronics") : ?>selected<?php endif; ?>>Electronics</option>
             <option value="other" <?php if (se($category, null, "", false) == "other") : ?>selected<?php endif; ?>>Other</option>
         </select>
     </div>
@@ -91,21 +95,22 @@ try {
                         <a class="text-dark text-decoration-none" href="more_details.php?name=<?php se($result, "name"); ?>">
                             <h5 class="card-title"><?php se($result, "name"); ?></h5>
                         </a>
-                        <p class="card-text">$<?php se($result, "unit_price"); ?></p>
-                        <?php if (has_role("Admin") || has_role("Shop Owner")) : ?>
-                            <a href="edit_item.php?name=<?php se($result, "name"); ?>">
-                                <div class="btn btn-secondary">Edit</div>
-                            </a>
+                        <?php if (se($result, "visibility", "", false) == "0") : ?>
+                            <p class="text-secondary">Not Visible</p>
+                        <?php else : ?>
+                            <p>Visible</p>
                         <?php endif; ?>
+                        <p class="card-text">$<?php echo se($result, "unit_price", "", false) / 100; ?></p>
+                        <a href="edit_product.php?name=<?php se($result, "name"); ?>">
+                            <div class="btn btn-secondary">Edit</div>
+                        </a>
                     </div>
-                    <?php if (is_logged_in()) : ?>
-                        <div class="card-footer">
-                            <form method="post" action="cart.php">
-                                <input type="hidden" name="name" value="<?php se($result, "name"); ?>" />
-                                <input type="submit" class="btn btn-primary" value="Add to Cart" />
-                            </form>
-                        </div>
-                    <?php endif; ?>
+                    <div class="card-footer">
+                        <form method="post" action="cart.php">
+                            <input type="hidden" name="name" value="<?php se($result, "name"); ?>" />
+                            <input type="submit" class="btn btn-primary" value="Add to Cart" />
+                        </form>
+                    </div>
                 </div>
             </div>
         <?php endforeach; ?>

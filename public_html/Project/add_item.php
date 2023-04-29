@@ -39,14 +39,18 @@ if (isset($_POST["name"]) && isset($_POST["description"]) && isset($_POST["categ
     //Database insertion
     if ($isValid) {
         $db = getDB();
+        $price *= 100; //converts price to integer before inserting
         $stmt = $db->prepare("INSERT INTO Products (name, description, category, stock, unit_price, visibility) VALUES(:name, :description, :category, :stock, :price, :visibility)");
         try {
             $stmt->execute([":name" => $name, ":description" => $description, ":category" => $category, ":stock" => $stock, ":price" => $price, ":visibility" => $visibility]);
             flash("Successfully added $name!", "success");
         } catch (PDOException $e) {
-            flash("Unknown error occurred, please try again", "danger");
-            error_log(var_export($e->errorInfo, true));
-                
+            if ($e->errorInfo[1] === 1062) {
+                flash("A product with this name already exists, please try another", "warning");
+            } else {
+                flash("Unknown error occurred, please try again", "danger");
+                error_log(var_export($e->errorInfo, true));
+            }   
         }
     }
 }
